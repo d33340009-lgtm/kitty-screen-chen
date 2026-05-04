@@ -110,10 +110,18 @@ function isApplePlatform() {
   return /mac|iphone|ipad|ipod/i.test(platform + userAgent);
 }
 
+/**
+ * 核心修改点：
+ * 这里必须返回资源在 Tauri 配置文件中定义的路径。
+ * 既然你的 .dmg 里 video 文件夹下有 mov，
+ * 且你在 YAML 脚本中生成的位置是 resources/videos/macos/
+ */
 function screensaverVideoResourcePath() {
-  return isApplePlatform()
-    ? "videos/kitty-screen-mac.mov"
-    : "videos/kitty-screen-windows.webm";
+  if (isApplePlatform()) {
+    // 对应你 .dmg 包里 Content/Resources/resources/videos/macos/ 下的文件名
+    return "resources/videos/macos/kitty-combined.mov";
+  }
+  return "videos/kitty-screen-windows.webm";
 }
 
 function isSupportedLocale(locale: string): locale is Locales {
@@ -670,13 +678,15 @@ function ScreensaverView({
 
     async function loadVideoSource() {
       try {
+        // resolveResource 会根据当前是在开发环境还是生产包内，自动定位到正确位置
         const path = await resolveResource(screensaverVideoResourcePath());
 
         if (!cancelled) {
+          // 核心：使用 convertFileSrc 转换成 WebView 可用的 URL
           setVideoSource(convertFileSrc(path));
         }
       } catch (error) {
-        console.error(error);
+        console.error("加载视频资源失败:", error);
       }
     }
 
@@ -706,7 +716,7 @@ function ScreensaverView({
     if (video && videoSource) {
       video.currentTime = 0;
       void video.play().catch((error: unknown) => {
-        console.error(error);
+        console.error("播放失败:", error);
       });
     }
 
