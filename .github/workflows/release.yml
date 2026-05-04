@@ -3,7 +3,7 @@ name: "Publish Release"
 on:
   push:
     branches:
-      - main # 当你向 main 分支提交代码时自动触发
+      - main # 确保你的主分支名字是 main，如果是 master 请修改此处
 
 jobs:
   publish-tauri:
@@ -14,7 +14,8 @@ jobs:
       matrix:
         include:
           - platform: "macos-latest"
-            args: "--target universal-apple-darwin --bundles dmg --config src-tauri/tauri.macos.conf.json"
+            # 这里去掉了 args 里的 --target 参数，让 Tauri 自动处理通用打包
+            args: "--bundles dmg --config src-tauri/tauri.macos.conf.json"
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -32,18 +33,17 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: universal-apple-darwin
+          # 核心修复：分别下载 Intel 和 Apple Silicon 的支持组件
+          targets: "aarch64-apple-darwin, x86_64-apple-darwin"
 
       - name: Install FFmpeg
-        # GitHub 的 macOS 环境通常自带 FFmpeg，但为了保险我们手动执行安装/更新
         run: brew install ffmpeg
 
       - name: Install dependencies
         run: bun install
 
       - name: Generate Videos
-        # 这一步最关键：它会现场把你的 assets/*.mp4 转成带透明通道的 .mov
-        # 确保你的 scripts/generate-videos.mjs 已经修复了语法错误
+        # 现场在云端生成透明视频
         run: bun run videos -- --platform macos
 
       - name: Build and Release
@@ -51,9 +51,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__ # 自动根据 package.json 里的版本号命名
+          tagName: v__VERSION__ # 自动从 package.json 获取版本号
           releaseName: "Kitty Screen v__VERSION__"
-          releaseBody: "这是自动生成的 macOS 版本 (.dmg)。请下载下方的 Assets 文件。"
-          releaseDraft: true # 先作为草稿保存，方便你检查后再发布
+          releaseBody: "这是为您生成的 macOS 通用版 (.dmg)，兼容 Intel 和 M1/M2/M3 芯片。"
+          releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
