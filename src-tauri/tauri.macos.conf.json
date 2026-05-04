@@ -1,0 +1,7 @@
+{
+  "bundle": {
+    "resources": {
+      "../resources/videos/macos/kitty-screen.mov": "videos/kitty-screen-mac.mov"
+    }
+  }
+}
