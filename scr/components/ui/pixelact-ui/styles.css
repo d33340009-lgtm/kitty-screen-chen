@@ -1,0 +1,171 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+:root {
+  --box-shadow-width: 4px;
+  --pixel-ink: #101014;
+  --pixel-paper: #fbfaf1;
+  --pixel-muted: #ece8d0;
+  --pixel-line: #101014;
+  --pixel-cyan: #5de6ff;
+  --pixel-yellow: #ffd84d;
+  --pixel-green: #77ee70;
+  --pixel-red: #ff5d5d;
+  --pixel-purple: #a689ff;
+  --pixel-box-shadow:
+    calc(-1 * var(--box-shadow-width)) 0 0 0 var(--pixel-line),
+    var(--box-shadow-width) 0 0 0 var(--pixel-line),
+    0 var(--box-shadow-width) 0 0 var(--pixel-line),
+    0 calc(-1 * var(--box-shadow-width)) 0 0 var(--pixel-line);
+  --default-inner-border-color: rgb(210, 210, 210);
+}
+
+.pixel-font {
+  font-family:
+    "Press Start 2P", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", monospace;
+  letter-spacing: 0;
+  line-height: 1.5;
+}
+
+.pixel__button {
+  align-items: center;
+  border: 0;
+  border-radius: 0;
+  box-shadow: var(--pixel-box-shadow);
+  cursor: pointer;
+  display: inline-flex;
+  gap: 0.55rem;
+  justify-content: center;
+  margin: var(--box-shadow-width);
+  min-width: 0;
+  position: relative;
+  text-align: center;
+  transition:
+    background-color 100ms linear,
+    color 100ms linear,
+    transform 100ms linear;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.pixel__button::after {
+  border-bottom: 4px solid rgba(0, 0, 0, 0.35);
+  border-right: 4px solid rgba(0, 0, 0, 0.35);
+  bottom: 0;
+  content: "";
+  height: 100%;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  width: 100%;
+}
+
+.pixel__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.pixel__button:active:not(:disabled) {
+  transform: translateY(3px);
+}
+
+.pixel__button svg {
+  flex: 0 0 auto;
+  height: 1rem;
+  width: 1rem;
+}
+
+.pixel__button--default {
+  font-size: 0.62rem;
+  min-height: 2.4rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.pixel__button--sm {
+  font-size: 0.52rem;
+  min-height: 1.95rem;
+  padding: 0.38rem 0.52rem;
+}
+
+.pixel__button--lg {
+  font-size: 0.7rem;
+  min-height: 2.65rem;
+  padding: 0.62rem 0.85rem;
+}
+
+.pixel__button--icon {
+  aspect-ratio: 1;
+  min-height: 2.4rem;
+  padding: 0.55rem;
+  width: 2.4rem;
+}
+
+.pixel-default__button {
+  background: var(--pixel-paper);
+  color: var(--pixel-ink);
+}
+
+.pixel-default__button:hover:not(:disabled),
+.pixel-default__button[data-active="true"] {
+  background: var(--pixel-cyan);
+}
+
+.pixel-secondary__button {
+  background: var(--pixel-muted);
+  color: var(--pixel-ink);
+}
+
+.pixel-secondary__button:hover:not(:disabled),
+.pixel-secondary__button[data-active="true"] {
+  background: var(--pixel-purple);
+  color: #fff;
+}
+
+.pixel-warning__button {
+  background: var(--pixel-yellow);
+  color: var(--pixel-ink);
+}
+
+.pixel-warning__button:hover:not(:disabled),
+.pixel-warning__button[data-active="true"] {
+  background: #ffb53d;
+}
+
+.pixel-success__button {
+  background: var(--pixel-green);
+  color: var(--pixel-ink);
+}
+
+.pixel-success__button:hover:not(:disabled),
+.pixel-success__button[data-active="true"] {
+  background: #51d957;
+}
+
+.pixel-destructive__button {
+  background: var(--pixel-red);
+  color: #fff;
+}
+
+.pixel-destructive__button:hover:not(:disabled),
+.pixel-destructive__button[data-active="true"] {
+  background: #de3434;
+}
+
+.pixel-link__button {
+  background: transparent;
+  box-shadow: none;
+  color: #1462ff;
+  margin: 0;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.pixel-link__button::after {
+  display: none;
+}
+
+.pixel__label {
+  color: var(--pixel-ink);
+  display: inline-block;
+  font-size: 0.68rem;
+}
