@@ -175,11 +175,17 @@ function encodeLoopedMacHevc(intro, loop, output) {
     "-map",
     "[v]",
     "-c:v",
-    "prores_ks",
-    "-profile:v",
-    "4444",
-    "-pix_fmt", 
+    "hevc_videotoolbox",  // HEVC with alpha，体积约 50MB vs ProRes 4444 的 ~2GB
+    "-allow_sw",
+    "1",                  // 允许软件回退，确保 GitHub Actions 云端兼容
+    "-alpha_quality",
+    "0.75",
+    "-vtag",
+    "hvc1",               // QuickTime/Safari 识别透明通道必须用 hvc1
+    "-pix_fmt",
     "yuva444p10le",
+    "-profile:v",
+    "main10",
     output,
   ]);
 }
