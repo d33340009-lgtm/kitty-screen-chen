@@ -296,7 +296,9 @@ fn setup_tray(app: &mut tauri::App) -> tauri::Result<()> {
         MenuItem::with_id(app, "toggle_screensaver", labels.show, true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, "quit", labels.quit, true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&open_app_item, &toggle_item, &quit_item])?;
-    let tray_icon = Image::from_bytes(include_bytes!("../icons/tray-icon.png"))?;
+    let tray_icon = Image::from_bytes(
+    include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/icons/tray-icon.png"))
+)?;
 
     {
         let state = app.state::<AppState>();
