@@ -1,3 +1,6 @@
+注意：如果 macOS 提示“应用已损坏”，请在终端运行：sudo xattr -rd com.apple.quarantine /Applications/kitty-screen.app
+
+
 # Kitty Screen
 
 [English README](README.md) · [GitHub](https://github.com/elliothux/kitty-screen) · [下载](https://github.com/elliothux/kitty-screen/releases)
