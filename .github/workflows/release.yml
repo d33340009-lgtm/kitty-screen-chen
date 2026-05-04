@@ -3,7 +3,7 @@ name: "Publish Release"
 on:
   push:
     branches:
-      - main # 当你向 main 分支推送代码时触发
+      - main # 当你向 main 分支提交代码时自动触发
 
 jobs:
   publish-tauri:
@@ -13,39 +13,47 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest" # 使用 GitHub 提供的 Mac 服务器
+          - platform: "macos-latest"
             args: "--target universal-apple-darwin --bundles dmg --config src-tauri/tauri.macos.conf.json"
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: setup node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
-      - name: install Bun
+      - name: Install Bun
         uses: oven-sh/setup-bun@v2
 
-      - name: install Rust toolchain
+      - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: universal-apple-darwin
 
-      - name: install dependencies
+      - name: Install FFmpeg
+        # GitHub 的 macOS 环境通常自带 FFmpeg，但为了保险我们手动执行安装/更新
+        run: brew install ffmpeg
+
+      - name: Install dependencies
         run: bun install
 
-      - name: generate videos
-        run: bun run videos -- --platform macos # 这一步会自动运行你的 generate-videos.mjs
+      - name: Generate Videos
+        # 这一步最关键：它会现场把你的 assets/*.mp4 转成带透明通道的 .mov
+        # 确保你的 scripts/generate-videos.mjs 已经修复了语法错误
+        run: bun run videos -- --platform macos
 
-      - uses: tauri-apps/tauri-action@v0
+      - name: Build and Release
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__ # 自动从 package.json 获取版本号
+          tagName: v__VERSION__ # 自动根据 package.json 里的版本号命名
           releaseName: "Kitty Screen v__VERSION__"
-          releaseBody: "See the assets below for the macOS DMG."
-          releaseDraft: true
+          releaseBody: "这是自动生成的 macOS 版本 (.dmg)。请下载下方的 Assets 文件。"
+          releaseDraft: true # 先作为草稿保存，方便你检查后再发布
           prerelease: false
           args: ${{ matrix.args }}
