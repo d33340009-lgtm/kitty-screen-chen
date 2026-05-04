@@ -514,8 +514,8 @@ function App() {
   );
 
   const preview = useCallback(async () => {
-    // 针对网页版的增强：请求全屏
-    if (!window.__TAURI__) {
+    // 加上 (window as any)，这告诉 TypeScript：“别管它，我知道我在干什么”
+    if (!(window as any).__TAURI__) {
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(e => console.error(e));
       }
