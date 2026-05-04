@@ -3,21 +3,25 @@ name: "Publish Release"
 on:
   push:
     branches:
-      - main # 确保你的主分支名字是 main，如果是 master 请修改此处
+      - main # 如果你的主分支是 master，请在此处修改
 
 jobs:
   publish-tauri:
     permissions:
       contents: write
+    runs-on: macos-latest
+    env:
+      # 消除 Node.js 20 弃用警告
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: "macos-latest"
-            # 这里去掉了 args 里的 --target 参数，让 Tauri 自动处理通用打包
-            args: "--bundles dmg --config src-tauri/tauri.macos.conf.json"
+            # 简化参数，让 Tauri 自动识别配置
+            args: "--bundles dmg"
 
-    runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,7 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: 24
 
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
@@ -33,7 +37,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          # 核心修复：分别下载 Intel 和 Apple Silicon 的支持组件
+          # 下载双架构支持，确保打包通用版
           targets: "aarch64-apple-darwin, x86_64-apple-darwin"
 
       - name: Install FFmpeg
@@ -43,17 +47,24 @@ jobs:
         run: bun install
 
       - name: Generate Videos
-        # 现场在云端生成透明视频
+        # 此时你应该已经在脚本里使用了 HEVC 或 ProRes 4444 瘦身逻辑
         run: bun run videos -- --platform macos
+
+      - name: Fix Permissions and Cleanup
+        # 核心修复：强行赋予目录权限，并删除可能导致冲突的本地 target 文件夹
+        run: |
+          rm -rf src-tauri/target
+          mkdir -p src-tauri/target/release/bundle/dmg/
+          chmod -R +x .
 
       - name: Build and Release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__ # 自动从 package.json 获取版本号
+          tagName: v__VERSION__
           releaseName: "Kitty Screen v__VERSION__"
-          releaseBody: "这是为您生成的 macOS 通用版 (.dmg)，兼容 Intel 和 M1/M2/M3 芯片。"
+          releaseBody: "这是为您生成的 macOS 通用版 (.dmg)。"
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
