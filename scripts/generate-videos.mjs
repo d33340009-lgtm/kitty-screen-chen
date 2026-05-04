@@ -139,15 +139,18 @@ function concatenateSegments(segments, output) {
   run("ffmpeg", [
     "-hide_banner",
     "-y",
-    "-f",
-    "concat",
-    "-safe",
-    "0",
-    "-i",
-    concatList,
-    "-c",
-    "copy",
-    output,
+    "-i", intro,
+    "-stream_loop", String(loopRepeats - 1),
+    "-i", loop,
+    "-filter_complex", "[0:v]setpts=PTS-STARTPTS[intro];[1:v]setpts=PTS-STARTPTS[loop];[intro][loop]concat=n=2:v=1:a=0,format=yuva444p10le[v]",
+    "-map", "[v]",
+    "-c:v", "hevc_videotoolbox", // 使用 macOS 硬件加速的 HEVC 编码器
+    "-allow_sw", "1",            // 允许软件回退（确保云端兼容性）
+    "-alpha_quality", "0.75",    // 设置透明通道质量
+    "-vtag", "hvc1",             // 必须使用 hvc1 标签，否则 QuickTime 不认透明
+    "-pix_fmt", "yuva444p10le", 
+    "-profile:v", "main10",      // 10bit 确保平滑度
+    output
   ]);
 }
 
