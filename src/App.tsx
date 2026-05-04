@@ -514,8 +514,24 @@ function App() {
   );
 
   const preview = useCallback(async () => {
-    await invoke("preview_screensaver");
-    await refreshScreensaverState();
+    // 针对网页版的增强：请求全屏
+    if (!window.__TAURI__) {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(e => console.error(e));
+      }
+    }
+
+    try {
+      await invoke("preview_screensaver");
+      await refreshScreensaverState();
+    } catch (error) {
+      // 如果是在网页运行，invoke 会报错，我们在这里通过改变状态来模拟预览
+      console.log("正在网页环境预览...");
+      // 触发网页版自己的预览逻辑
+      if (typeof refreshScreensaverState === 'function') {
+        await refreshScreensaverState();
+      }
+    }
   }, [refreshScreensaverState]);
 
   const openExternalUrl = useCallback(async (url: string) => {
