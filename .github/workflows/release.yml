@@ -19,7 +19,6 @@ jobs:
       matrix:
         include:
           - platform: "macos-latest"
-            # 简化参数，让 Tauri 自动识别配置
             args: "--bundles dmg"
 
     steps:
@@ -37,7 +36,6 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          # 下载双架构支持，确保打包通用版
           targets: "aarch64-apple-darwin, x86_64-apple-darwin"
 
       - name: Install FFmpeg
@@ -47,17 +45,31 @@ jobs:
         run: bun install
 
       - name: Generate Videos
-        # 此时你应该已经在脚本里使用了 HEVC 或 ProRes 4444 瘦身逻辑
         run: bun run videos -- --platform macos
 
       - name: Fix Permissions and Cleanup
-        # 核心修复：强行赋予目录权限，并删除可能导致冲突的本地 target 文件夹
         run: |
           rm -rf src-tauri/target
           mkdir -p src-tauri/target/release/bundle/dmg/
           chmod -R +x .
 
+      - name: Build Application Bundle
+        # 先编译出 .app 文件，但不发布，方便我们下一步“开箱”
+        run: bun tauri build --bundles app
+
+      - name: Inspect Package Content
+        # 【核心步骤】在这里通过日志查看安装包里到底有没有猫
+        run: |
+          echo "=========================================="
+          echo "正在检查生成的 macOS App 资源目录清单..."
+          echo "目标路径: Contents/Resources"
+          echo "=========================================="
+          # 递归列出 .app 内部 Resources 文件夹下的所有文件
+          ls -R src-tauri/target/release/bundle/macos/*.app/Contents/Resources
+          echo "=========================================="
+
       - name: Build and Release
+        # 这一步会利用上面编译好的结果，打成 dmg 并上传到 GitHub Release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
