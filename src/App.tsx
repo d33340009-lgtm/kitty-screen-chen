@@ -514,7 +514,7 @@ function App() {
   );
 
   const preview = useCallback(async () => {
-    // 加上 (window as any)，这告诉 TypeScript：“别管它，我知道我在干什么”
+    // 1. 网页版专属：请求全屏
     if (!(window as any).__TAURI__) {
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(e => console.error(e));
@@ -522,15 +522,18 @@ function App() {
     }
 
     try {
+      // 2. 尝试调用 Mac 原生功能
       await invoke("preview_screensaver");
       await refreshScreensaverState();
     } catch (error) {
-      // 如果是在网页运行，invoke 会报错，我们在这里通过改变状态来模拟预览
-      console.log("正在网页环境预览...");
-      // 触发网页版自己的预览逻辑
-      if (typeof refreshScreensaverState === 'function') {
-        await refreshScreensaverState();
-      }
+      // 3. 网页版备选方案：手动拨动开关，让所有组件（猫、倒计时、按钮）现身
+      console.log("正在网页环境模拟预览...");
+      setScreensaverState((prev) => ({
+        ...prev,
+        isShowing: true,      // 核心：打开显示开关
+        mode: "preview",      // 核心：进入预览模式
+        generation: prev.generation + 1,
+      }));
     }
   }, [refreshScreensaverState]);
 
