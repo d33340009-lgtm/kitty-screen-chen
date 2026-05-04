@@ -1,0 +1,58 @@
+{
+  "name": "kitty-screen",
+  "version": "0.1.6",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "app:build:mac": "node scripts/build-macos.mjs --require-notarization --target universal-apple-darwin --bundles app,dmg --config src-tauri/tauri.macos.conf.json",
+    "app:build:mac:app": "node scripts/build-macos.mjs --require-notarization --target universal-apple-darwin --bundles app --config src-tauri/tauri.macos.conf.json",
+    "app:build:mac:signed": "node scripts/build-macos.mjs --skip-notarization --target universal-apple-darwin --bundles app,dmg --config src-tauri/tauri.macos.conf.json",
+    "app:build:windows": "tauri build --bundles nsis --config src-tauri/tauri.windows.conf.json",
+    "app:dev": "tauri dev",
+    "build": "bun run i18n && tsc && vite build",
+    "check": "bun run format && bun run typecheck && bun run lint",
+    "check:staged": "lint-staged",
+    "dev": "vite",
+    "format": "bunx sort-package-json && prettier --write --log-level warn .",
+    "i18n": "typesafe-i18n --no-watch",
+    "icons": "node scripts/generate-icons.mjs",
+    "lint": "(oxlint --fix . && knip) || echo '[warn] lint failed'",
+    "prepare": "simple-git-hooks",
+    "preview": "vite preview",
+    "release:mac": "node scripts/release-macos.mjs",
+    "release:windows:upload": "node scripts/release-windows-upload.mjs",
+    "typecheck": "tsc --noEmit",
+    "videos": "node scripts/generate-videos.mjs"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "test -f \"$(git rev-parse --git-path MERGE_HEAD)\" && exit 0 || bun run check:staged"
+  },
+  "lint-staged": {
+    "*": "prettier --write --log-level warn --ignore-unknown",
+    "*.{js,jsx,ts,tsx,mjs,cjs}": "oxlint --fix"
+  },
+  "dependencies": {
+    "@leenguyen/react-flip-clock-countdown": "^1.7.2",
+    "@tauri-apps/api": "^2",
+    "lucide-react": "^1.14.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "typesafe-i18n": "^5.27.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "knip": "^5.85.0",
+    "lint-staged": "^16.4.0",
+    "oxlint": "^1.62.0",
+    "prettier": "^3.8.3",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "prettier-plugin-tailwindcss": "^0.8.0",
+    "simple-git-hooks": "^2.13.1",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.4"
+  },
+  "productName": "Kitty Screen"
+}

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignoreFiles": ["src/i18n/i18n-util.async.ts"],
+  "ignoreIssues": {
+    "src/i18n/i18n-types.ts": ["types"],
+    "src/i18n/i18n-util.sync.ts": ["exports"],
+    "src/i18n/i18n-util.ts": ["exports"]
+  }
+}

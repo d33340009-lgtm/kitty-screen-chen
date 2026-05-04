@@ -1,0 +1,26 @@
+# dependencies
+node_modules
+
+# build artifacts
+dist
+.next
+out
+coverage
+build
+
+# config directories
+.idea
+.vscode
+
+# misc
+*.log
+
+bun.lock
+
+# generated files
+*.gen.ts
+
+refs
+tmp
+dist
+src-tauri/target/
