@@ -121,6 +121,7 @@ function encodeMacHevc(input, output, duration) {
     "argb",
   ]);
 
+
   //  verifyTransparentCorner(output);
 }
 
@@ -167,14 +168,14 @@ function encodeLoopedMacHevc(intro, loop, output) {
     "-i",
     loop,
     "-filter_complex",
-    "[0:v]setpts=PTS-STARTPTS[intro];[1:v]setpts=PTS-STARTPTS[loop];[intro][loop]concat=n=2:v=1:a=0,format=bgra[v]",
+    "[0:v]setpts=PTS-STARTPTS[intro];[1:v]setpts=PTS-STARTPTS[loop];[intro][loop]concat=n=2:v=1:a=0,format=yuva444p10le[v]",
     "-map",
     "[v]",
-    "-an",
     "-c:v",
-    "qtrle",
+    "prores_ks",
+    "-profile:v", "4444",
     "-pix_fmt", 
-    "argb",
+    "yuva444p10le",
     output,
   ]);
 }
