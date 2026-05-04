@@ -1,0 +1,51 @@
+name: "Publish Release"
+
+on:
+  push:
+    branches:
+      - main # 当你向 main 分支推送代码时触发
+
+jobs:
+  publish-tauri:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "macos-latest" # 使用 GitHub 提供的 Mac 服务器
+            args: "--target universal-apple-darwin --bundles dmg --config src-tauri/tauri.macos.conf.json"
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: install Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: universal-apple-darwin
+
+      - name: install dependencies
+        run: bun install
+
+      - name: generate videos
+        run: bun run videos -- --platform macos # 这一步会自动运行你的 generate-videos.mjs
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__ # 自动从 package.json 获取版本号
+          releaseName: "Kitty Screen v__VERSION__"
+          releaseBody: "See the assets below for the macOS DMG."
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
