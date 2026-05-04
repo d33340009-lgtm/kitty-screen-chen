@@ -171,7 +171,7 @@ function encodeLoopedMacHevc(intro, loop, output) {
     "-i",
     loop,
     "-filter_complex",
-    "[0:v]setpts=PTS-STARTPTS[intro];[1:v]setpts=PTS-STARTPTS[loop];[intro][loop]concat=n=2:v=1:a=0,format=yuva444p10le[v]",
+    "[0:v]setpts=PTS-STARTPTS[intro];[1:v]setpts=PTS-STARTPTS[loop];[intro][loop]concat=n=2:v=1:a=0,format=ayuv[v]",
     "-map",
     "[v]",
     "-c:v",
@@ -182,10 +182,7 @@ function encodeLoopedMacHevc(intro, loop, output) {
     "0.75",
     "-vtag",
     "hvc1",               // QuickTime/Safari 识别透明通道必须用 hvc1
-    "-pix_fmt",
-    "yuva444p10le",
-    "-profile:v",
-    "main10",
+    // ayuv 是 hevc_videotoolbox 支持 alpha 的正确 8-bit 格式，不要加 main10
     output,
   ]);
 }
