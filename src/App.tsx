@@ -707,7 +707,7 @@ function ScreensaverView({
     async function loadVideoSource() {
       if (isWeb) {
         // 网页版直接设置路径
-        setVideoSource("./resources/videos/web/kitty-preview.mp4");
+        setVideoSource("./kitty-preview.mp4");
       } 
         else {
         // App 版走原生资源解析
