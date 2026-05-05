@@ -706,8 +706,9 @@ function ScreensaverView({
 
     async function loadVideoSource() {
       if (isWeb) {
-        // 网页版直接设置路径
-        setVideoSource("./kitty-preview.mp4");
+        // 网页版：直接使用根目录路径，去掉 ./ 试试，这样最稳妥
+        console.log("Detecting web environment, loading video...");
+        setVideoSource("kitty-preview.mp4");
       } 
         else {
         // App 版走原生资源解析
