@@ -498,6 +498,15 @@ function App() {
       setSettings(next);
       setIsSaving(true);
 
+      // --- 网页版专属防火墙：如果是浏览器，模拟保存成功并直接返回 ---
+      if (!(window as any).__TAURI__) {
+        console.log("网页模拟：设置已临时更新", next);
+        setSettings(normalizeSettings(next)); // 确保界面同步更新
+        setIsSaving(false);
+        return; 
+      }
+      // ---------------------------------------------------------
+      
       try {
         const saved = await invoke<Settings>("save_settings", {
           settings: next,
