@@ -674,6 +674,8 @@ function ScreensaverView({
 }) {
   const [showClock, setShowClock] = useState(false);
   const [videoSource, setVideoSource] = useState<string | null>(null);
+  // 新增下面这一行：判断是否为网页环境
+  const isWeb = !(window as any).__TAURI__;
   const videoRef = useRef<HTMLVideoElement>(null);
   const isReplayingLoopRef = useRef(false);
   const target = useMemo(() => {
@@ -688,14 +690,20 @@ function ScreensaverView({
     let cancelled = false;
 
     async function loadVideoSource() {
-      try {
-        const path = await resolveResource(screensaverVideoResourcePath());
-
-        if (!cancelled) {
-          setVideoSource(convertFileSrc(path));
+      if (isWeb) {
+        // 网页版直接设置路径
+        setVideoSource("resources/videos/web/kitty-preview.mp4");
+      } else {
+        // App 版走原生资源解析
+        try {
+          const path = await resolveResource(screensaverVideoResourcePath());
+          
+          if (!cancelled) {
+            setVideoSource(convertFileSrc(path));
+          }
+        } catch (error) {
+          console.error(error);
         }
-      } catch (error) {
-        console.error(error);
       }
     }
 
