@@ -416,6 +416,7 @@ function App() {
   const languageChoices = useMemo(() => languageOptions(LL), [LL]);
 
   const refreshScreensaverState = useCallback(async () => {
+    if (!(window as any).__TAURI__) return;
     try {
       const next = await invoke<ScreensaverState>("get_screensaver_state");
       setScreensaverState(next);
@@ -429,6 +430,12 @@ function App() {
     let unlistenSettings: (() => void) | undefined;
 
     async function boot() {
+      if (!(window as any).__TAURI__) {
+        setSettings(normalizeSettings(DEFAULT_SETTINGS));
+        setScreensaverState(DEFAULT_SCREENSAVER_STATE);
+        return;
+      }
+
       try {
         const [loadedSettings, overlay] = await Promise.all([
           invoke<Partial<Settings>>("get_settings"),
@@ -475,6 +482,7 @@ function App() {
     let cancelled = false;
 
     async function checkForUpdates() {
+      if (!(window as any).__TAURI__) return;
       try {
         const next = await checkForAvailableUpdate();
 
@@ -498,15 +506,12 @@ function App() {
       setSettings(next);
       setIsSaving(true);
 
-      // --- 网页版专属防火墙：如果是浏览器，模拟保存成功并直接返回 ---
       if (!(window as any).__TAURI__) {
-        console.log("网页模拟：设置已临时更新", next);
-        setSettings(normalizeSettings(next)); // 确保界面同步更新
+        setSettings(normalizeSettings(next));
         setIsSaving(false);
-        return; 
+        return;
       }
-      // ---------------------------------------------------------
-      
+
       try {
         const saved = await invoke<Settings>("save_settings", {
           settings: next,
@@ -522,33 +527,25 @@ function App() {
     [refreshScreensaverState],
   );
 
- const preview = useCallback(async () => {
-    // 1. 网页版专属：如果是浏览器环境，直接执行模拟逻辑并返回
+  const preview = useCallback(async () => {
     if (!(window as any).__TAURI__) {
-      console.log("正在网页环境模拟预览...");
-      
-      // 请求全屏
       if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(e => console.error(e));
+        document.documentElement.requestFullscreen().catch(() => {});
       }
-
-      // 拨动开关，让猫咪和倒计时现身
       setScreensaverState((prev) => ({
         ...prev,
         isShowing: true,
         mode: "preview",
         generation: prev.generation + 1,
       }));
-      
-      return; // 极其重要：在这里直接结束，不让程序跑向下面的 invoke
+      return;
     }
 
-    // 2. 以下是只有真正的 Mac App 才会执行的逻辑
     try {
       await invoke("preview_screensaver");
       await refreshScreensaverState();
     } catch (error) {
-      console.error("Native preview failed:", error);
+      console.error(error);
     }
   }, [refreshScreensaverState]);
 
@@ -689,7 +686,6 @@ function ScreensaverView({
 }) {
   const [showClock, setShowClock] = useState(false);
   const [videoSource, setVideoSource] = useState<string | null>(null);
-  // 新增下面这一行：判断是否为网页环境
   const isWeb = !(window as any).__TAURI__;
   const videoRef = useRef<HTMLVideoElement>(null);
   const isReplayingLoopRef = useRef(false);
@@ -706,12 +702,8 @@ function ScreensaverView({
 
     async function loadVideoSource() {
       if (isWeb) {
-        // 网页版：直接使用根目录路径，去掉 ./ 试试，这样最稳妥
-        console.log("Detecting web environment, loading video...");
         setVideoSource("kitty-preview.mp4");
-      } 
-        else {
-        // App 版走原生资源解析
+      } else {
         try {
           const path = await resolveResource(screensaverVideoResourcePath());
           if (!cancelled) {
@@ -763,6 +755,13 @@ function ScreensaverView({
   }, [state.generation, state.isShowing, videoSource]);
 
   const close = useCallback(async () => {
+    if (!(window as any).__TAURI__) {
+      setScreensaverState((prev) => ({ ...prev, isShowing: false }));
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+      return;
+    }
     try {
       await invoke("hide_screensaver");
     } catch (error) {
