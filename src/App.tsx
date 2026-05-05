@@ -513,27 +513,33 @@ function App() {
     [refreshScreensaverState],
   );
 
-  const preview = useCallback(async () => {
-    // 1. 网页版专属：请求全屏
+ const preview = useCallback(async () => {
+    // 1. 网页版专属：如果是浏览器环境，直接执行模拟逻辑并返回
     if (!(window as any).__TAURI__) {
+      console.log("正在网页环境模拟预览...");
+      
+      // 请求全屏
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(e => console.error(e));
       }
+
+      // 拨动开关，让猫咪和倒计时现身
+      setScreensaverState((prev) => ({
+        ...prev,
+        isShowing: true,
+        mode: "preview",
+        generation: prev.generation + 1,
+      }));
+      
+      return; // 极其重要：在这里直接结束，不让程序跑向下面的 invoke
     }
 
+    // 2. 以下是只有真正的 Mac App 才会执行的逻辑
     try {
-      // 2. 尝试调用 Mac 原生功能
       await invoke("preview_screensaver");
       await refreshScreensaverState();
     } catch (error) {
-      // 3. 网页版备选方案：手动拨动开关，让所有组件（猫、倒计时、按钮）现身
-      console.log("正在网页环境模拟预览...");
-      setScreensaverState((prev) => ({
-        ...prev,
-        isShowing: true,      // 核心：打开显示开关
-        mode: "preview",      // 核心：进入预览模式
-        generation: prev.generation + 1,
-      }));
+      console.error("Native preview failed:", error);
     }
   }, [refreshScreensaverState]);
 
